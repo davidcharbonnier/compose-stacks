@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  web:
+    image: davidcharbonnier/homepage
+    restart: always
+    networks:
+      - proxy-public
+    labels:
+      # Enable Traefik proxy to expose homepage
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`davidcharbonnier.fr`)"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+      - "traefik.http.routers.homepage.tls.certresolver=letsencrypt"
+
+networks:
+  proxy-public:
+    external:
+      name: proxy-public
