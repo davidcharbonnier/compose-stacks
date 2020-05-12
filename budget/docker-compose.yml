@@ -1,0 +1,101 @@
+version: '3.5'
+
+services:
+  db:
+    image: postgres:12.2
+    env_file:
+      - .env.db
+    volumes:
+      - db:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  app:
+    image: jc5x/firefly-iii:release-5.2.5
+    volumes:
+      - export:/var/www/firefly-iii/storage/export
+      - upload:/var/www/firefly-iii/storage/upload
+    environment:
+      - APP_NAME=Budget
+      - APP_URL=https://budget.davidcharbonnier.fr
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - SITE_OWNER=contact@davidcharbonnier.fr
+      - DEFAULT_LANGUAGE=fr_FR
+      - DEFAULT_LOCALE=equal
+      - TZ=America/New_York
+      - TRUSTED_PROXIES=**
+      - LOG_CHANNEL=stack
+      - APP_LOG_LEVEL=notice
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - COOKIE_PATH="/"
+      - COOKIE_DOMAIN=
+      - COOKIE_SECURE=false
+      - MAIL_DRIVER=log
+      - MAIL_HOST=smtp.mailtrap.io
+      - MAIL_PORT=2525
+      - MAIL_FROM=changeme@example.com
+      - MAIL_USERNAME=null
+      - MAIL_PASSWORD=null
+      - MAIL_ENCRYPTION=null
+      - MAILGUN_DOMAIN=
+      - MAILGUN_SECRET=
+      - MAILGUN_ENDPOINT=api.mailgun.net
+      - MANDRILL_SECRET=
+      - SPARKPOST_SECRET=
+      - SEND_REGISTRATION_MAIL=false
+      - SEND_ERROR_MESSAGE=false
+      - SEND_REPORT_JOURNALS=false
+      - MAPBOX_API_KEY=
+      - MAP_DEFAULT_LAT=51.983333
+      - MAP_DEFAULT_LONG=5.916667
+      - MAP_DEFAULT_ZOOM=6
+      - CER_PROVIDER=ratesapi
+      - FIXER_API_KEY=
+      - LOGIN_PROVIDER=eloquent
+      - DISABLE_FRAME_HEADER=false
+      - DISABLE_CSP_HEADER=false
+      - TRACKER_SITE_ID=
+      - TRACKER_URL=
+      - SEND_TELEMETRY=false
+      - DKR_CHECK_SQLITE=false
+      - DKR_RUN_MIGRATION=true
+      - DKR_RUN_UPGRADE=true
+      - DKR_RUN_VERIFY=true
+      - DKR_RUN_REPORT=true
+      - DKR_RUN_PASSPORT_INSTALL=true
+      - BROADCAST_DRIVER=log
+      - QUEUE_DRIVER=sync
+      - CACHE_PREFIX=firefly
+      - SEARCH_RESULT_LIMIT=50
+      - PUSHER_KEY=
+      - PUSHER_SECRET=
+      - PUSHER_ID=
+      - USE_ENCRYPTION=false
+      - IS_DOCKER=true
+      - BUNQ_USE_SANDBOX=false
+    env_file:
+      - .env
+    networks:
+      - backend
+      - proxy-public
+    depends_on:
+      - db
+    labels:
+      # Enable Traefik proxy to expose homepage
+      - "traefik.enable=true"
+      - "traefik.http.routers.budget.rule=Host(`budget.davidcharbonnier.fr`)"
+      - "traefik.http.routers.budget.entrypoints=websecure"
+      - "traefik.http.routers.budget.tls.certresolver=letsencrypt"
+
+networks:
+  proxy-public:
+    external:
+      name: proxy-public
+  backend:
+
+volumes:
+   export:
+   upload:
+   db:
