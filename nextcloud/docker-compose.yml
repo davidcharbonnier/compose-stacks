@@ -1,0 +1,90 @@
+version: '3'
+
+services:
+  db:
+    image: mariadb:10.4.12
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: always
+    volumes:
+      - db:/var/lib/mysql:rw
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    env_file:
+      - db.env
+    networks:
+      - backend
+
+  redis:
+    image: redis:5.0.8-alpine
+    restart: always
+    networks:
+      - backend
+
+  app:
+    image: nextcloud:18.0.3-fpm-alpine
+    restart: always
+    volumes:
+      - nextcloud:/var/www/html:rw
+    environment:
+      - MYSQL_HOST=db
+      - REDIS_HOST=redis
+      - NEXTCLOUD_TRUSTED_DOMAINS=cloud.davidcharbonnier.fr
+    env_file:
+      - nextcloud.env
+      - db.env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+
+  web:
+    build: ./web
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - nextcloud:/var/www/html:ro
+    depends_on:
+      - app
+    networks:
+      - backend
+      - proxy-public
+    labels:
+      # Enable Traefik proxy to expose Nextcloud
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextcloud.rule=Host(`cloud.davidcharbonnier.fr`)"
+      - "traefik.http.routers.nextcloud.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud.tls.certresolver=letsencrypt"
+
+  cron:
+    image: nextcloud:18.0.3-fpm-alpine
+    restart: always
+    volumes:
+      - nextcloud:/var/www/html:rw
+    entrypoint: /cron.sh
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+
+volumes:
+  db:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/nextcloud/db
+      o: bind
+  nextcloud:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/nextcloud/app
+      o: bind
+
+networks:
+  proxy-public:
+    external:
+      name: proxy-public
+  backend:
