@@ -39,6 +39,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "1194:1194"
     volumes:
       - certs:/letsencrypt
       - ./conf/tls.yml:/etc/traefik/dyn/tls.yml
