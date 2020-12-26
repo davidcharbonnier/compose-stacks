@@ -19,6 +19,8 @@ services:
       - "--entrypoints.web.address=:80"
       # Entrypoint for HTTPS trafic
       - "--entrypoints.websecure.address=:443"
+      # Entrypoint for OpenVPN trafic
+      - "--entrypoints.vpntcp.address=:1194"
       # Letsencrypt PROD settings
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
