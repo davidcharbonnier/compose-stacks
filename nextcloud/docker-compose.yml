@@ -21,7 +21,7 @@ services:
       - backend
 
   app:
-    image: nextcloud:18.0.4-fpm-alpine
+    image: nextcloud:23.0.0-fpm-alpine
     restart: always
     volumes:
       - nextcloud:/var/www/html:rw
@@ -29,6 +29,7 @@ services:
       - MYSQL_HOST=db
       - REDIS_HOST=redis
       - NEXTCLOUD_TRUSTED_DOMAINS=cloud.davidcharbonnier.fr
+      - TRUSTED_PROXIES=10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
     env_file:
       - nextcloud.env
       - db.env
@@ -56,7 +57,7 @@ services:
       - "traefik.http.routers.nextcloud.tls.certresolver=letsencrypt"
 
   cron:
-    image: nextcloud:18.0.4-fpm-alpine
+    image: nextcloud:23.0.0-fpm-alpine
     restart: always
     volumes:
       - nextcloud:/var/www/html:rw
